@@ -51,7 +51,6 @@ function validar(array $d): array
     return $errores;
 }
 
-// ---------- Enrutamiento ----------
 $metodo = $_SERVER['REQUEST_METHOD'];
 $ruta   = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 $partes = explode('/', $ruta);
@@ -70,7 +69,7 @@ $id = $id !== null ? (int)$id : null;
 try {
     $pdo = Database::connect();
 
-    // GET /productos  -> listar activos
+
     if ($metodo === 'GET' && $id === null) {
         $stmt = $pdo->query(
             'SELECT id, nombre, proveedor, fecha_vencimiento, precio, stock
@@ -79,7 +78,6 @@ try {
         responder(200, $stmt->fetchAll());
     }
 
-    // GET /productos/{id} -> obtener uno
     if ($metodo === 'GET' && $id !== null) {
         $stmt = $pdo->prepare(
             'SELECT id, nombre, proveedor, fecha_vencimiento, precio, stock
@@ -93,7 +91,6 @@ try {
         responder(200, $producto);
     }
 
-    // POST /productos -> crear
     if ($metodo === 'POST' && $id === null) {
         $datos = json_decode(file_get_contents('php://input'), true);
         if (!is_array($datos)) {
@@ -117,7 +114,6 @@ try {
         responder(201, ['mensaje' => 'Producto creado.', 'id' => (int)$pdo->lastInsertId()]);
     }
 
-    // PUT /productos/{id} -> editar
     if ($metodo === 'PUT' && $id !== null) {
         $datos = json_decode(file_get_contents('php://input'), true);
         if (!is_array($datos)) {
@@ -141,7 +137,6 @@ try {
             $id,
         ]);
 
-        // Verificamos que el producto exista y esté activo
         $check = $pdo->prepare('SELECT COUNT(*) FROM Producto WHERE id = ? AND eliminado = 0');
         $check->execute([$id]);
         if ((int)$check->fetchColumn() === 0) {
@@ -150,7 +145,6 @@ try {
         responder(200, ['mensaje' => 'Producto actualizado.']);
     }
 
-    // DELETE /productos/{id} -> eliminación lógica
     if ($metodo === 'DELETE' && $id !== null) {
         $stmt = $pdo->prepare('UPDATE Producto SET eliminado = 1 WHERE id = ? AND eliminado = 0');
         $stmt->execute([$id]);
